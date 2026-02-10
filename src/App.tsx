@@ -30,46 +30,49 @@ export default function App(): JSX.Element {
             id: 'basic',
             title: 'Alap Biztonság',
             description:
-                'Belépő szintű védelem kisebb lakásokhoz. Telepíthető Zigbee-s (vezeték nélküli) és hagyományos vezetékes érzékelőkkel is.',
+                'Belépő szintű védelem kisebb lakásokhoz, komplett kezdőcsomag.',
             features: [
-                'Központi vezérlő (Zigbee vagy vezetékes opció)',
-                '1x mozgásérzékelő',
-                '1x ajtó-/ablakérzékelő',
+                '1x okos szerver',
+                '1x Zigbee USB stick',
+                '3x kültéri mozgásérzékelő',
+                '3x beltéri mozgásérzékelő',
+                '3x ajtó-/ablakérzékelő',
                 'Egyszerű telefonos értesítések'
             ],
-            priceRange: '200–300 ezer Ft',
+            priceRange: '350 000 Ft',
             image: '/images/basic-security.jpg'
         },
         {
-            id: 'simple',
+            id: 'medium',
             title: 'Családi Biztonság',
             description:
-                'Kiegyensúlyozott védelem családi házakhoz — hibrid (Zigbee + vezetékes) megoldással, bővíthető érzékelőkkel.',
+                'Kiegyensúlyozott védelem családi házakhoz — előre összeállított 12 szenzorral és 2 kamerával.',
             features: [
-                'Zigbee + vezetékes hibrid kialakítás',
-                'Több mozgásérzékelő',
-                'Ajtó- és ablakérzékelők',
+                '1x okos szerver',
+                '1x Zigbee USB stick',
+                '12x szenzor (beltéri/kültéri, igény szerint)',
+                '2x biztonsági kamera',
                 'Alap automatizálás és távoli hozzáférés'
             ],
-            priceRange: '400–500 ezer Ft',
+            priceRange: '550 000 Ft',
             image: '/images/simple-security.jpg'
         },
         {
             id: 'strong',
             title: 'Teljes Védelem',
             description:
-                'Professzionális, bővíthető rendszer teljes ingatlanvédelemhez. Vezetékes és vezeték nélküli szenzorok kombinálhatók.',
+                'Teljesen testreszabható rendszer: annyi szenzor és kamera, amennyire a ház vagy vállalkozás igényli.',
             features: [
-                'Teljes érzékelő lefedettség',
-                'Vezetékes + vezeték nélküli szenzorok',
+                'Vezetékes és vezeték nélküli szenzorok kombinálása',
+                'Tetszőleges számú mozgás- és nyitásérzékelő',
+                'Tetszőleges számú biztonsági kamera',
                 'Haladó automatizmusok, sziréna és riasztási logika',
                 'Skálázható, igény szerint bővíthető'
             ],
-            priceRange: '500–800 ezer Ft (érzékelők számától függ)',
+            priceRange: 'Ár az igényektől függ',
             image: '/images/strong-security.jpg'
         }
     ];
-
 
     const scrollToSection = (id: string) => {
         const el = document.getElementById(id);
@@ -84,6 +87,7 @@ export default function App(): JSX.Element {
 
     return (
         <div className="min-h-screen bg-white">
+            {/* NAV */}
             <nav className="fixed top-0 w-full bg-white shadow-md z-50">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
@@ -159,6 +163,7 @@ export default function App(): JSX.Element {
                 </div>
             </nav>
 
+            {/* HERO */}
             <section className="pt-24 pb-20 bg-gradient-to-br from-blue-50 to-gray-100">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center">
@@ -189,6 +194,7 @@ export default function App(): JSX.Element {
                 </div>
             </section>
 
+            {/* ABOUT */}
             <section id="about" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
@@ -213,60 +219,31 @@ export default function App(): JSX.Element {
                         <div className="bg-gradient-to-br from-blue-50 to-gray-100 p-8 rounded-lg">
                             <h3 className="text-xl font-bold text-gray-900 mb-6">Miért Minket Válasszon?</h3>
                             <ul className="space-y-4">
-                                <li className="flex items-start">
-                                    <div className="bg-blue-600 rounded-full p-1 mr-3 mt-1">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <span className="font-semibold text-gray-900">Piacvezető árak</span>
-                                        <p className="text-gray-600">Verhetetlen árak, kompromisszum nélkül a minőségben</p>
-                                    </div>
-                                </li>
-
-                                <li className="flex items-start">
-                                    <div className="bg-blue-600 rounded-full p-1 mr-3 mt-1">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <span className="font-semibold text-gray-900">Helyi Szakértelem</span>
-                                        <p className="text-gray-600">Szegeden alapítva, büszkén szolgálva a régiót</p>
-                                    </div>
-                                </li>
-
-                                <li className="flex items-start">
-                                    <div className="bg-blue-600 rounded-full p-1 mr-3 mt-1">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <span className="font-semibold text-gray-900">Megbízható Technológia</span>
-                                        <p className="text-gray-600">Zigbee és vezetékes rendszerek a nagy megbízhatóságért</p>
-                                    </div>
-                                </li>
-
-                                <li className="flex items-start">
-                                    <div className="bg-blue-600 rounded-full p-1 mr-3 mt-1">
-                                        <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <span className="font-semibold text-gray-900">Személyre Szabott Szolgáltatás</span>
-                                        <p className="text-gray-600">Közvetlen kommunikáció a tulajdonosokkal</p>
-                                    </div>
-                                </li>
+                                {['Piacvezető árak', 'Helyi Szakértelem', 'Megbízható Technológia', 'Személyre Szabott Szolgáltatás'].map((title, i) => (
+                                    <li key={i} className="flex items-start">
+                                        <div className="bg-blue-600 rounded-full p-1 mr-3 mt-1">
+                                            <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <span className="font-semibold text-gray-900">{title}</span>
+                                            <p className="text-gray-600">
+                                                {title === 'Piacvezető árak' && 'Verhetetlen árak, kompromisszum nélkül a minőségben'}
+                                                {title === 'Helyi Szakértelem' && 'Szegeden alapítva, büszkén szolgálva a régiót'}
+                                                {title === 'Megbízható Technológia' && 'Zigbee és vezetékes rendszerek a nagy megbízhatóságért'}
+                                                {title === 'Személyre Szabott Szolgáltatás' && 'Közvetlen kommunikáció a tulajdonosokkal'}
+                                            </p>
+                                        </div>
+                                    </li>
+                                ))}
                             </ul>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* PRODUCTS SECTION */}
+            {/* PRODUCTS */}
             <section id="products" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
@@ -385,97 +362,16 @@ export default function App(): JSX.Element {
                     <div className="text-center mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4">Kapcsolat</h2>
                         <div className="w-20 h-1 bg-blue-600 mx-auto mb-4" />
-                        <p className="text-xl text-gray-600">Vegye fel velünk a kapcsolatot ingyenes konzultáció vagy árajánlat céljából</p>
+                        <p className="text-gray-600">Kérjen személyre szabott árajánlatot vagy konzultációt</p>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-12">
-                        <div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-6">Lépjen Kapcsolatba Velünk</h3>
-                            <div className="space-y-6">
-                                <div className="flex items-start">
-                                    <div className="bg-blue-100 p-3 rounded-full mr-4">
-                                        <Phone className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900 mb-1">Telefon</h4>
-                                        <p className="text-gray-700">+36 20 454 5501</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start">
-                                    <div className="bg-blue-100 p-3 rounded-full mr-4">
-                                        <Mail className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900 mb-1">Email</h4>
-                                        <p className="text-gray-700">info@okosor.hu</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex items-start">
-                                    <div className="bg-blue-100 p-3 rounded-full mr-4">
-                                        <MapPin className="h-6 w-6 text-blue-600" />
-                                    </div>
-                                    <div>
-                                        <h4 className="font-semibold text-gray-900 mb-1">Cím</h4>
-                                        <p className="text-gray-700">Szeged, Magyarország</p>
-                                        <p className="text-gray-600 text-sm mt-1">Szeged és környéke kiszolgálása</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div>
-                            <ContactForm />
-                        </div>
-                    </div>
+                    <ContactForm />
                 </div>
             </section>
 
-            {/* FOOTER */}
-            <footer className="bg-gray-900 text-white py-12">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="grid md:grid-cols-3 gap-8 mb-8">
-                        <div>
-                            <div className="flex items-center space-x-2 mb-4">
-                                <Home className="h-6 w-6 text-blue-400" />
-                                <span className="text-lg font-bold">OkosŐr Szeged</span>
-                            </div>
-                            <p className="text-gray-400">Megbízható partner az okosotthon- és biztonsági megoldások terén Szegeden és környékén.</p>
-                        </div>
-
-                        <div>
-                            <h4 className="text-lg font-semibold mb-4">Gyors Linkek</h4>
-                            <ul className="space-y-2">
-                                <li>
-                                    <button onClick={() => scrollToSection('about')} className="text-gray-400 hover:text-white transition">Rólunk</button>
-                                </li>
-                                <li>
-                                    <button onClick={() => scrollToSection('products')} className="text-gray-400 hover:text-white transition">Csomagok</button>
-                                </li>
-                                <li>
-                                    <button onClick={() => scrollToSection('services')} className="text-gray-400 hover:text-white transition">Szolgáltatások</button>
-                                </li>
-                                <li>
-                                    <button onClick={() => scrollToSection('contact')} className="text-gray-400 hover:text-white transition">Kapcsolat</button>
-                                </li>
-                            </ul>
-                        </div>
-
-                        <div>
-                            <h4 className="text-lg font-semibold mb-4">Szolgáltatásaink</h4>
-                            <ul className="space-y-2 text-gray-400">
-                                <li>Fűtés- és Hűtésvezérlés</li>
-                                <li>Okosotthon Automatizálás</li>
-                                <li>Biztonsági Rendszerek (Zigbee & vezetékes)</li>
-                                <li>Zigbee Eszköz Telepítés</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <div className="border-t border-gray-800 pt-8 text-center text-gray-400">
-                        <p>&copy; 2026 Vastag Péter EV. Minden jog fenntartva.</p>
-                    </div>
+            <footer className="bg-gray-800 text-gray-200 py-8">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                    <p>&copy; {new Date().getFullYear()} OkosŐr Szeged. Minden jog fenntartva.</p>
                 </div>
             </footer>
         </div>

@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
+// App.tsx
+import React, { useRef, useState} from 'react';
 import {
     Thermometer,
     Shield,
@@ -10,10 +11,6 @@ import {
 } from 'lucide-react';
 import ContactForm from './components/ContactForm';
 
-/* ------------------------------------------
-   Types
-   ------------------------------------------ */
-
 type Product = {
     id: string;
     title: string;
@@ -24,10 +21,6 @@ type Product = {
     badge?: string;
 };
 
-/* ------------------------------------------
-   Utilities
-   ------------------------------------------ */
-
 /** stable unique id per component instance */
 function useUniqueId(prefix = 'id') {
     const ref = useRef<string | null>(null);
@@ -37,10 +30,9 @@ function useUniqueId(prefix = 'id') {
     return ref.current;
 }
 
-/* ------------------------------------------
-   Small visual components
-   ------------------------------------------ */
-
+/** Reusable HouseLogo. If circleBg is true we rely on the container's rounded background
+ *  (so no inner square rect shows up). Each instance gets a unique gradient id.
+ */
 function HouseLogo({ className = 'h-8 w-8', circleBg = true }: { className?: string; circleBg?: boolean; }) {
     const gradId = useUniqueId('houseGrad');
     return (
@@ -63,6 +55,7 @@ function HouseLogo({ className = 'h-8 w-8', circleBg = true }: { className?: str
                     </linearGradient>
                 </defs>
 
+                {/* If circleBg is true we omit the square rect so rounded container is visible */}
                 {!circleBg && <rect width="64" height="64" fill="#E0F2FE" />}
                 <polygon
                     points="16,32 32,16 48,32 48,48 16,48"
@@ -76,100 +69,10 @@ function HouseLogo({ className = 'h-8 w-8', circleBg = true }: { className?: str
     );
 }
 
-/* ------------------------------------------
-   Hooks: reveal on scroll, active section, parallax
-   ------------------------------------------ */
-
-/** Reveal sections when entering viewport (IntersectionObserver) */
-function useRevealOnScroll(selector = '.section') {
-    useEffect(() => {
-        const els = Array.from(document.querySelectorAll<HTMLElement>(selector));
-        if (!els.length) return;
-
-        const obs = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    const el = entry.target as HTMLElement;
-                    if (entry.isIntersecting) {
-                        el.classList.add('revealed');
-                        obs.unobserve(el);
-                    }
-                });
-            },
-            { threshold: 0.12 }
-        );
-
-        els.forEach((el) => obs.observe(el));
-        return () => obs.disconnect();
-    }, [selector]);
-}
-
-/** Track which section is "active" using IntersectionObserver (works great with fixed nav) */
-function useActiveSection(sectionIds: string[], setActive: (id: string) => void) {
-    useEffect(() => {
-        const sections = sectionIds
-            .map(id => document.getElementById(id))
-            .filter(Boolean) as HTMLElement[];
-        if (!sections.length) return;
-
-        const obs = new IntersectionObserver(
-            (entries) => {
-                // We want the section that is most visible / intersecting
-                const visible = entries
-                    .filter(e => e.isIntersecting)
-                    .sort((a, b) => (b.intersectionRatio || 0) - (a.intersectionRatio || 0));
-                if (visible.length) {
-                    setActive(visible[0].target.id);
-                }
-            },
-            {
-                root: null,
-                threshold: [0.15, 0.3, 0.5, 0.75]
-            }
-        );
-
-        sections.forEach(s => obs.observe(s));
-        return () => obs.disconnect();
-    }, [sectionIds.join('|'), setActive]);
-}
-
-/** Lightweight parallax hook that exposes a small offset value */
-function useParallax(multiplier = 0.12) {
-    const [offset, setOffset] = useState(0);
-    useEffect(() => {
-        let raf = 0;
-        const onScroll = () => {
-            cancelAnimationFrame(raf);
-            raf = requestAnimationFrame(() => {
-                setOffset(window.scrollY * multiplier);
-            });
-        };
-        window.addEventListener('scroll', onScroll, { passive: true });
-        onScroll();
-        return () => {
-            cancelAnimationFrame(raf);
-            window.removeEventListener('scroll', onScroll);
-        };
-    }, [multiplier]);
-    return offset;
-}
-
-/* ------------------------------------------
-   Main App
-   ------------------------------------------ */
-
 export default function App(): JSX.Element {
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    const [activeSection, setActiveSection] = useState('about');
-
-    // Keep a single source of truth for section IDs so hooks and nav stay in sync
-    const sectionIds = ['about', 'products', 'services', 'contact'];
-
-    useRevealOnScroll('.section');
-    useActiveSection(sectionIds, setActiveSection);
-    const heroParallax = useParallax(0.06);
-
-    const NAV_HEIGHT = 72; // px — adjust if your nav height changes
+    // NEW: privacy section visibility (the whole section under the hero)
+    const [showPrivacySection, setShowPrivacySection] = useState(true);
 
     const products: Product[] = [
         {
@@ -223,8 +126,7 @@ export default function App(): JSX.Element {
     const scrollToSection = (id: string) => {
         const el = document.getElementById(id);
         if (el) {
-            const y = el.getBoundingClientRect().top + window.pageYOffset - NAV_HEIGHT + 8; // small gap
-            window.scrollTo({ top: y, behavior: 'smooth' });
+            el.scrollIntoView({ behavior: 'smooth' });
             setMobileMenuOpen(false);
         }
     };
@@ -241,47 +143,75 @@ export default function App(): JSX.Element {
 
     return (
         <div style={themeVars} className="min-h-screen bg-white">
+            {/* small scoped CSS: gradient-text used sparingly; ping-slow for subtle effect */}
             <style>{`
-        :root { --focus-ring: 3px solid rgba(59,130,246,0.12); }
-        .focus-ring:focus { outline: var(--focus-ring); outline-offset: 2px; }
+        :root {
+          --focus-ring: 3px solid rgba(59,130,246,0.12);
+        }
+        .focus-ring:focus {
+          outline: var(--focus-ring);
+          outline-offset: 2px;
+        }
 
-        .gradient-text { background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end)); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
+        .gradient-text {
+          background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end));
+          -webkit-background-clip: text;
+          background-clip: text;
+          color: transparent;
+          display: inline-block;
+        }
 
-        .brand-pill { background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end)); color: white; }
+        /* subtle brand pill for buttons / badges */
+        .brand-pill {
+          background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end));
+          color: white;
+        }
 
-        @keyframes ping-slow { 0% { transform: scale(1); opacity: 1; } 75% { transform: scale(1.8); opacity: 0; } 100% { transform: scale(1.8); opacity: 0; } }
-        .ping-slow::after { content: ""; position: absolute; width: 3.25rem; height: 3.25rem; border-radius: 9999px; background: radial-gradient(circle, rgba(248,113,113,0.18), rgba(59,130,246,0.08)); animation: ping-slow 1.8s infinite; pointer-events: none; top: 0; left: 0; transform-origin: center; }
+        /* slower ping for middle service */
+        @keyframes ping-slow {
+          0% { transform: scale(1); opacity: 1; }
+          75% { transform: scale(1.8); opacity: 0; }
+          100% { transform: scale(1.8); opacity: 0; }
+        }
+        .ping-slow::after {
+          content: "";
+          position: absolute;
+          width: 3.25rem; /* 52px (matches icon container) */
+          height: 3.25rem;
+          border-radius: 9999px;
+          background: radial-gradient(circle, rgba(248,113,113,0.18), rgba(59,130,246,0.08));
+          animation: ping-slow 1.8s infinite;
+          pointer-events: none;
+          top: 0;
+          left: 0;
+          transform-origin: center;
+        }
 
-        /* section reveal */
-        .section { opacity: 0; transform: translateY(12px); transition: transform 700ms cubic-bezier(.16,.84,.35,1), opacity 700ms ease; }
-        .section.revealed { opacity: 1; transform: translateY(0); }
+        /* ensure H2 headings don't clip */
+        .section-heading {
+          display: inline-block;
+          overflow: visible;
+          white-space: normal;
+        }
 
-        /* product horizontal scroll snap */
-        .scroll-snap-x { scroll-snap-type: x mandatory; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .scroll-snap-item { scroll-snap-align: start; }
-
-        /* ensure headings don't clip */
-        .section-heading { display: inline-block; overflow: visible; white-space: normal; }
-
-        /* small responsive niceties */
-        @media (min-width: 768px) {
-          .nav-desktop { display: flex; }
+        /* small responsive tweak for disclaimer height */
+        @media (min-width: 640px) {
+          .disclaimer-height { height: 48px; }
         }
       `}</style>
-
             {/* NAV */}
             <nav
-                className="fixed top-0 w-full z-50"
+                className="fixed w-full z-50"
                 style={{
-                    height: NAV_HEIGHT,
+                    top : '0px',
                     background:
-                        'linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.84) 100%)',
+                        'linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.76) 100%)',
                     backdropFilter: 'saturate(120%) blur(6px)',
                     borderBottom: '1px solid rgba(59,130,246,0.06)'
                 }}
             >
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-full">
+                    <div className="flex justify-between items-center h-16">
                         <div className="flex items-center space-x-3">
                             <div className="rounded-full p-1" style={{ background: 'var(--primary-bg)' }}>
                                 <HouseLogo className="h-9 w-9" circleBg />
@@ -289,19 +219,11 @@ export default function App(): JSX.Element {
                             <span className="text-xl font-bold gradient-text">OkosŐr Szeged</span>
                         </div>
 
-                        <div className="hidden md:flex space-x-8 nav-desktop">
-                            {sectionIds.map((s) => (
-                                <button
-                                    key={s}
-                                    onClick={() => scrollToSection(s)}
-                                    className={`text-gray-700 hover:text-gray-900 transition focus-ring ${activeSection === s ? 'font-bold gradient-text' : ''}`}
-                                >
-                                    {s === 'about' && 'Rólunk'}
-                                    {s === 'products' && 'Csomagok'}
-                                    {s === 'services' && 'Szolgáltatások'}
-                                    {s === 'contact' && 'Kapcsolat'}
-                                </button>
-                            ))}
+                        <div className="hidden md:flex space-x-8">
+                            <button onClick={() => scrollToSection('about')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Rólunk</button>
+                            <button onClick={() => scrollToSection('products')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Csomagok</button>
+                            <button onClick={() => scrollToSection('services')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Szolgáltatások</button>
+                            <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Kapcsolat</button>
                         </div>
 
                         <button className="md:hidden p-2 rounded-md focus-ring" onClick={() => setMobileMenuOpen(prev => !prev)} aria-label="Toggle menu">
@@ -311,36 +233,19 @@ export default function App(): JSX.Element {
 
                     {mobileMenuOpen && (
                         <div className="md:hidden pb-4">
-                            {sectionIds.map((s) => (
-                                <button key={s} onClick={() => scrollToSection(s)} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">
-                                    {s === 'about' && 'Rólunk'}
-                                    {s === 'products' && 'Csomagok'}
-                                    {s === 'services' && 'Szolgáltatások'}
-                                    {s === 'contact' && 'Kapcsolat'}
-                                </button>
-                            ))}
+                            <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Rólunk</button>
+                            <button onClick={() => scrollToSection('products')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Csomagok</button>
+                            <button onClick={() => scrollToSection('services')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Szolgáltatások</button>
+                            <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Kapcsolat</button>
                         </div>
                     )}
                 </div>
             </nav>
 
             {/* HERO */}
-            <section className="pt-28 pb-32 bg-gradient-to-br from-blue-50 to-gray-100 section" aria-label="Hero">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-                    {/* parallax decorative */}
-                    <div style={{ transform: `translateY(${heroParallax}px)`, transition: 'transform 200ms linear' }} className="absolute inset-0 pointer-events-none opacity-30 -z-10">
-                        <svg width="100%" height="100%" preserveAspectRatio="none" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" aria-hidden>
-                            <defs>
-                                <linearGradient id="heroGrad" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stopColor="#F8A5A5" />
-                                    <stop offset="100%" stopColor="#93C5FD" />
-                                </linearGradient>
-                            </defs>
-                            <path fill="url(#heroGrad)" fillOpacity="0.06" d="M0,160L40,149.3C80,139,160,117,240,106.7C320,96,400,96,480,106.7C560,117,640,139,720,154.7C800,171,880,181,960,170.7C1040,160,1120,128,1200,122.7C1280,117,1360,139,1400,149.3L1440,160L1440,0L1400,0C1360,0,1280,0,1200,0C1120,0,1040,0,960,0C880,0,800,0,720,0C640,0,560,0,480,0C400,0,320,0,240,0C160,0,80,0,40,0L0,0Z" />
-                        </svg>
-                    </div>
-
-                    <div className="text-center relative">
+            <section className="pt-24 pb-32 bg-gradient-to-br from-blue-50 to-gray-100">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="text-center">
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
                             Megfizethető Okos Otthon Megoldások
                         </h1>
@@ -368,8 +273,62 @@ export default function App(): JSX.Element {
                 </div>
             </section>
 
+            {/* NEW: FULL PRIVACY / NO 3RD-PARTY SECTION directly under HERO */}
+            {showPrivacySection && (
+                <section id="privacy" className="py-8 bg-white">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                        <div className="rounded-xl p-6 md:p-8 shadow-md"
+                             style={{ background: 'linear-gradient(90deg, rgba(248,113,113,0.02), rgba(59,130,246,0.02))' }}>
+                            <div className="flex flex-col md:flex-row md:items-start md:gap-6">
+
+                                <div className="flex-shrink-0 mb-4 md:mb-0">
+                                    <div className="w-14 h-14 rounded-full flex items-center justify-center"
+                                         style={{ background: '#3B82F6' }}>
+                                        <Shield style={{ color: 'white' }} className="h-7 w-7" />
+                                    </div>
+                                </div>
+
+                                <div className="flex-1">
+                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                                        Semmit sem küldünk harmadik félnek
+                                    </h3>
+                                    <p className="text-gray-700 mb-4">
+                                        Nálunk az adataid helyben maradnak...
+                                    </p>
+
+                                    <ul className="grid gap-3 md:grid-cols-3 text-gray-700">
+                                        <li>
+                                            <strong className="block text-gray-900">Helyi feldolgozás</strong>
+                                            Adatok helyben kerülnek feldolgozásra.
+                                        </li>
+                                        <li>
+                                            <strong className="block text-gray-900">Nincs 3rd-party tracking</strong>
+                                            Nem használunk külső analitikát.
+                                        </li>
+                                        <li>
+                                            <strong className="block text-gray-900">Opciók és átláthatóság</strong>
+                                            Külső szolgáltatás csak jóváhagyással.
+                                        </li>
+                                    </ul>
+                                </div>
+
+                                <div className="mt-4 md:mt-0 md:ml-6 flex-shrink-0">
+                                    <button
+                                        onClick={() => scrollToSection('contact')}
+                                        className="px-4 py-2 rounded-md bg-white border border-gray-200 text-gray-800 font-medium"
+                                    >
+                                        Több infó / Kapcsolat
+                                    </button>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            )}
+
             {/* ABOUT */}
-            <section id="about" className="py-20 bg-white section">
+            <section id="about" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 section-heading">
@@ -382,7 +341,7 @@ export default function App(): JSX.Element {
                         <div>
                             <h3 className="text-2xl font-bold text-gray-900 mb-4">Családi Kiválóság</h3>
                             <p className="text-gray-700 mb-4 leading-relaxed">Szegeden élő apa-fia csapat vagyunk, akik szenvedéllyel hozzák el az okosotthon-technológiát minden háztartásba és vállalkozásba.</p>
-                            <p className="text-gray-700 mb-4 leading-relaxed">Küldetésünk egyszerű: a legköltséghatékonyabb okosotthon- és biztonsági megoldásokat nyújtani kompromisszumok nélkül a minőségben. Mind Zigbee-s (vezeték nélküli), mind vezetékes rendszereket telepítünk.</p>
+                            <p className="text-gray-700 mb-4 leading-relaxed">Küldetésünk egyszerű: a legköltséghatékonyabb okosotthon- és biztonsági megoldásokat nyújtani kompromisszumok nélküli minőségben. Mind Zigbee-s (vezeték nélküli), mind vezetékes rendszereket telepítünk.</p>
                             <p className="text-gray-700 leading-relaxed">Velünk személyre szabott szolgáltatást, helyi szakértelmet és azt a biztonságot kapja, amit egy megbízható családi vállalkozás biztosít.</p>
                         </div>
 
@@ -414,21 +373,30 @@ export default function App(): JSX.Element {
             </section>
 
             {/* PRODUCTS */}
-            <section id="products" className="py-20 bg-white section">
+            <section id="products" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 section-heading">
-                            <span className="gradient-text">Biztonsági Csomagok</span>
+                            <span className="gradient-text inline-block pb-1">Biztonsági Csomagok</span>
                         </h2>
-                        <p className="text-gray-600">Előre összeállított megoldások Zigbee és vezetékes technológiával</p>
+                        <p className="text-gray-600 mt-4">Előre összeállított megoldások Zigbee és vezetékes technológiával</p>
                     </div>
 
                     <div className="overflow-x-auto -mx-4 px-4 md:px-0">
-                        <div className="flex gap-6 md:grid md:grid-cols-3 md:gap-8 scroll-snap-x">
+                        <div className="flex gap-6 md:grid md:grid-cols-3 md:gap-8">
                             {products.map(product => (
-                                <article id={`product-${product.id}`} key={product.id} className="min-w-[280px] w-[320px] md:w-auto bg-white p-6 rounded-lg shadow hover:shadow-xl transition flex-shrink-0 scroll-snap-item">
+                                <article
+                                    id={`product-${product.id}`}
+                                    key={product.id}
+                                    className="min-w-[280px] w-[320px] md:w-auto bg-white p-6 rounded-lg shadow hover:shadow-xl transition flex-shrink-0"
+                                >
                                     <div className="h-44 w-full mb-4 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <img src={product.image || placeholder(product.title)} alt={product.title} className="object-contain w-full h-full p-2" onError={(e) => { (e.currentTarget as HTMLImageElement).src = placeholder(product.title); }} />
+                                        <img
+                                            src={product.image || placeholder(product.title)}
+                                            alt={product.title}
+                                            className="object-contain w-full h-full p-2"
+                                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = placeholder(product.title); }}
+                                        />
                                     </div>
 
                                     <h3 className="text-xl font-semibold text-gray-900 mb-2">{product.title}</h3>
@@ -446,8 +414,12 @@ export default function App(): JSX.Element {
                                     </ul>
 
                                     <div className="flex items-center justify-between">
-                                        <div className="text-lg font-semibold text-gray-900">{product.priceRange}</div>
-                                        <button onClick={() => scrollToSection('contact')} className="px-3 py-2 rounded-md text-sm focus-ring" style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))', color: '#fff' }}>
+                                        <div className="text-lg font-semibold text-gray-900">{product.priceRange}*</div>
+                                        <button
+                                            onClick={() => scrollToSection('contact')}
+                                            className="px-3 py-2 rounded-md text-sm focus-ring"
+                                            style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))', color: '#fff' }}
+                                        >
                                             Árajánlat kérése
                                         </button>
                                     </div>
@@ -455,10 +427,13 @@ export default function App(): JSX.Element {
                             ))}
                         </div>
                     </div>
+
+                    {/* Note at the bottom */}
+                    <p className="text-sm text-gray-500 mt-4 text-center">Az árainkban a felszerelés nincs benne</p>
                 </div>
             </section>
 
-            {/* SERVICES */}
+            {/* SERVICES (left/right: solid blue; middle: gradient + ping) */}
             <section id="services" className="py-20" style={{ background: 'linear-gradient(180deg, rgba(240,249,255,0.8), rgba(255,255,255,1))' }}>
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
@@ -480,10 +455,12 @@ export default function App(): JSX.Element {
 
                         <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition flex flex-col items-center relative">
                             <div className="relative w-16 h-16 mb-6">
+                                {/* solid pink background */}
                                 <div className="absolute inset-0 rounded-full" style={{ background: '#F87171' }} />
                                 <div className="absolute inset-0 rounded-full flex items-center justify-center">
                                     <Zap style={{ color: 'white' }} className="h-8 w-8" />
                                 </div>
+                                {/* ping effect */}
                                 <div className="absolute inset-0 rounded-full pointer-events-none" aria-hidden>
                                     <div className="ping-slow" style={{ width: '100%', height: '100%', borderRadius: '9999px' }} />
                                 </div>
@@ -512,7 +489,7 @@ export default function App(): JSX.Element {
             </section>
 
             {/* CONTACT */}
-            <section id="contact" className="py-20 bg-white section">
+            <section id="contact" className="py-20 bg-white">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="text-center mb-12">
                         <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 section-heading">
@@ -526,7 +503,7 @@ export default function App(): JSX.Element {
                 </div>
             </section>
 
-            {/* FOOTER */}
+            {/* FOOTER (brand text readable on dark background) */}
             <footer className="py-8 bg-gray-900 text-gray-200">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <div className="flex items-center gap-3">
@@ -535,13 +512,13 @@ export default function App(): JSX.Element {
                         </div>
                         <div>
                             <div className="text-white font-bold text-lg">OkosŐr Szeged</div>
-                            <div className="text-gray-400 text-sm">© {new Date().getFullYear()} Minden jog fenntartva.</div>
+                            <div className="text-gray-400 text-sm">&copy; {new Date().getFullYear()} Minden jog fenntartva (Vastag Péter E.V.).</div>
                         </div>
                     </div>
 
                     <div className="flex items-center gap-4">
-                        <a className="text-gray-300 hover:text-white" href="tel:+361234567"><Phone className="h-5 w-5 inline-block" /> <span className="ml-2">+36 1 234 567</span></a>
-                        <a className="text-gray-300 hover:text-white" href="mailto:info@okosor.example"><Mail className="h-5 w-5 inline-block" /> <span className="ml-2">info@okosor.example</span></a>
+                        <a className="text-gray-300 hover:text-white" href="tel:+36204545501"><Phone className="h-5 w-5 inline-block" /> <span className="ml-2">+36 20 454 5501</span></a>
+                        <a className="text-gray-300 hover:text-white" href="mailto:info@okosor.hu"><Mail className="h-5 w-5 inline-block" /> <span className="ml-2">info@okosor.hu</span></a>
                         <div className="text-gray-400 text-sm">Szeged, Hungary</div>
                     </div>
                 </div>

@@ -1,6 +1,5 @@
 import { useState, FormEvent } from 'react';
 import { Send } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 export default function ContactForm() {
     const [formData, setFormData] = useState({
@@ -18,23 +17,19 @@ export default function ContactForm() {
         setSubmitStatus('idle');
 
         try {
-            const { error } = await supabase
-                .from('contact_submissions')
-                .insert([formData]);
-
-            if (error) throw error;
-
-            setSubmitStatus('success');
-            setFormData({
-                name: '',
-                email: '',
-                phone: '',
-                message: '',
+            const res = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(formData),
             });
 
-            setTimeout(() => {
-                setSubmitStatus('idle');
-            }, 5000);
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Hiba történt');
+
+            setSubmitStatus('success');
+            setFormData({ name: '', email: '', phone: '', message: '' });
+
+            setTimeout(() => setSubmitStatus('idle'), 5000);
         } catch (error) {
             console.error('Hiba a küldés során:', error);
             setSubmitStatus('error');

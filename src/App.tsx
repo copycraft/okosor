@@ -1,528 +1,142 @@
-// App.tsx
-import React, { useRef, useState} from 'react';
-import {
-    Thermometer,
-    Shield,
-    Zap,
-    Menu,
-    X,
-    Phone,
-    Mail
-} from 'lucide-react';
-import ContactForm from './components/ContactForm';
+import React, { useState } from 'react';
+import { Home, ChevronRight, Globe, Code2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import SmarthomeContent from './SmarthomeHome.tsx';
+import ThreeDHomeContent from './3DHome.tsx';
+import WebsiteContent from './WebsiteHome.tsx';
 
-type Product = {
-    id: string;
-    title: string;
-    description: string;
-    features: string[];
-    priceRange: string;
-    image?: string;
-    badge?: string;
-};
+const Printer3D = ({ size = 24, className = "" }: { size?: number, className?: string }) => (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
+        <path d="M4 10V4a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v6" />
+        <path d="m9 18 3 3 3-3" />
+        <circle cx="12" cy="12" r="2" />
+        <path d="M12 2v10" />
+        <rect width="20" height="8" x="2" y="14" rx="2" />
+    </svg>
+);
 
-/** stable unique id per component instance */
-function useUniqueId(prefix = 'id') {
-    const ref = useRef<string | null>(null);
-    if (!ref.current) {
-        ref.current = `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
-    }
-    return ref.current;
-}
-
-/** Reusable HouseLogo. If circleBg is true we rely on the container's rounded background
- *  (so no inner square rect shows up). Each instance gets a unique gradient id.
- */
-function HouseLogo({ className = 'h-8 w-8', circleBg = true }: { className?: string; circleBg?: boolean; }) {
-    const gradId = useUniqueId('houseGrad');
-    return (
-        <div
-            className={`${className} ${circleBg ? 'rounded-full p-1' : ''}`}
-            style={circleBg ? { background: 'var(--primary-bg)' } : undefined}
-            aria-hidden
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 64 64"
-                className="h-full w-full block"
-                role="img"
-                aria-label="OkosŐr logo"
-            >
-                <defs>
-                    <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="0%" stopColor="#F87171" />
-                        <stop offset="100%" stopColor="#3B82F6" />
-                    </linearGradient>
-                </defs>
-
-                {/* If circleBg is true we omit the square rect so rounded container is visible */}
-                {!circleBg && <rect width="64" height="64" fill="#E0F2FE" />}
-                <polygon
-                    points="16,32 32,16 48,32 48,48 16,48"
-                    fill="none"
-                    stroke={`url(#${gradId})`}
-                    strokeWidth="6"
-                    strokeLinejoin="round"
-                />
-            </svg>
-        </div>
-    );
-}
+type View = 'portal' | '3d' | 'smarthome' | 'websites';
 
 export default function App(): JSX.Element {
-    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-    // NEW: privacy section visibility (the whole section under the hero)
-    const [showPrivacySection, setShowPrivacySection] = useState(true);
+    const [view, setView] = useState<View>('portal');
+    const [expanding, setExpanding] = useState<View | null>(null);
 
-    const products: Product[] = [
-        {
-            id: 'basic',
-            title: 'Alap Biztonság',
-            description:
-                'Belépő szintű védelem kisebb lakásokhoz, komplett kezdőcsomag.',
-            features: [
-                '1x okos szerver',
-                '1x Zigbee USB stick',
-                '3x kültéri mozgásérzékelő',
-                '3x beltéri mozgásérzékelő',
-                '3x ajtó-/ablakérzékelő',
-                'Egyszerű telefonos értesítések'
-            ],
-            priceRange: '350 000 Ft',
-            image: '/images/basic-security.jpg'
-        },
-        {
-            id: 'medium',
-            title: 'Családi Biztonság',
-            description:
-                'Kiegyensúlyozott védelem családi házakhoz — előre összeállított 12 szenzorral és 2 kamerával.',
-            features: [
-                '1x okos szerver',
-                '1x Zigbee USB stick',
-                '12x szenzor (beltéri/kültéri, igény szerint)',
-                '2x biztonsági kamera',
-                'Alap automatizálás és távoli hozzáférés'
-            ],
-            priceRange: '550 000 Ft',
-            image: '/images/simple-security.jpg'
-        },
-        {
-            id: 'strong',
-            title: 'Teljes Védelem',
-            description:
-                'Teljesen testreszabható rendszer: annyi szenzor és kamera, amennyire a ház vagy vállalkozás igényli.',
-            features: [
-                'Vezetékes és vezeték nélküli szenzorok kombinálása',
-                'Tetszőleges számú mozgás- és nyitásérzékelő',
-                'Tetszőleges számú biztonsági kamera',
-                'Haladó automatizmusok, sziréna és riasztási logika',
-                'Skálázható, igény szerint bővíthető'
-            ],
-            priceRange: 'Ár az igényektől függ',
-            image: '/images/strong-security.jpg'
-        }
-    ];
-
-    const scrollToSection = (id: string) => {
-        const el = document.getElementById(id);
-        if (el) {
-            el.scrollIntoView({ behavior: 'smooth' });
-            setMobileMenuOpen(false);
-        }
+    const handleNavigation = (target: View) => {
+        setExpanding(target);
+        setTimeout(() => {
+            setView(target);
+            setExpanding(null);
+        }, 750);
     };
 
-    const placeholder = (label: string) =>
-        `https://via.placeholder.com/1200x680.png?text=${encodeURIComponent(label)}`;
-
-    // theme variables derived from the logo
-    const themeVars: React.CSSProperties = {
-        ['--primary-grad-start' as any]: '#F87171',
-        ['--primary-grad-end' as any]: '#3B82F6',
-        ['--primary-bg' as any]: '#E0F2FE'
+    const pageVariants = {
+        initial: { opacity: 0 },
+        animate: { opacity: 1, transition: { duration: 0.5 } },
+        exit: { opacity: 0, transition: { duration: 0.3 } }
     };
 
     return (
-        <div style={themeVars} className="min-h-screen bg-white">
-            {/* small scoped CSS: gradient-text used sparingly; ping-slow for subtle effect */}
-            <style>{`
-        :root {
-          --focus-ring: 3px solid rgba(59,130,246,0.12);
-        }
-        .focus-ring:focus {
-          outline: var(--focus-ring);
-          outline-offset: 2px;
-        }
-
-        .gradient-text {
-          background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end));
-          -webkit-background-clip: text;
-          background-clip: text;
-          color: transparent;
-          display: inline-block;
-        }
-
-        /* subtle brand pill for buttons / badges */
-        .brand-pill {
-          background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end));
-          color: white;
-        }
-
-        /* slower ping for middle service */
-        @keyframes ping-slow {
-          0% { transform: scale(1); opacity: 1; }
-          75% { transform: scale(1.8); opacity: 0; }
-          100% { transform: scale(1.8); opacity: 0; }
-        }
-        .ping-slow::after {
-          content: "";
-          position: absolute;
-          width: 3.25rem; /* 52px (matches icon container) */
-          height: 3.25rem;
-          border-radius: 9999px;
-          background: radial-gradient(circle, rgba(248,113,113,0.18), rgba(59,130,246,0.08));
-          animation: ping-slow 1.8s infinite;
-          pointer-events: none;
-          top: 0;
-          left: 0;
-          transform-origin: center;
-        }
-
-        /* ensure H2 headings don't clip */
-        .section-heading {
-          display: inline-block;
-          overflow: visible;
-          white-space: normal;
-        }
-
-        /* small responsive tweak for disclaimer height */
-        @media (min-width: 640px) {
-          .disclaimer-height { height: 48px; }
-        }
-      `}</style>
-            {/* NAV */}
-            <nav
-                className="fixed w-full z-50"
-                style={{
-                    top : '0px',
-                    background:
-                        'linear-gradient(180deg, rgba(255,255,255,0.88) 0%, rgba(255,255,255,0.76) 100%)',
-                    backdropFilter: 'saturate(120%) blur(6px)',
-                    borderBottom: '1px solid rgba(59,130,246,0.06)'
-                }}
-            >
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <div className="flex items-center space-x-3">
-                            <div className="rounded-full p-1" style={{ background: 'var(--primary-bg)' }}>
-                                <HouseLogo className="h-9 w-9" circleBg />
+        <main className="relative min-h-screen w-full bg-black overflow-hidden selection:bg-orange-500/30">
+            <AnimatePresence mode="wait">
+                {view === 'portal' && (
+                    <motion.div
+                        key="portal"
+                        variants={pageVariants}
+                        initial="initial"
+                        animate="animate"
+                        exit="exit"
+                        className="relative min-h-screen w-full flex flex-col md:flex-row font-sans"
+                    >
+                        {/* Header */}
+                        <header className={`absolute top-0 left-0 w-full z-30 flex justify-center p-6 pointer-events-none transition-opacity duration-300 ${expanding ? 'opacity-0' : 'opacity-100'}`}>
+                            <div className="bg-zinc-900/90 backdrop-blur-md border border-white/10 px-8 py-3 rounded-2xl shadow-2xl">
+                                <p className="text-white font-bold tracking-[0.3em] uppercase text-[10px] text-center">
+                                    Válasszon divíziót <span className="text-emerald-500 mx-2">•</span> OkosŐr
+                                </p>
                             </div>
-                            <span className="text-xl font-bold gradient-text">OkosŐr Szeged</span>
-                        </div>
+                        </header>
 
-                        <div className="hidden md:flex space-x-8">
-                            <button onClick={() => scrollToSection('about')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Rólunk</button>
-                            <button onClick={() => scrollToSection('products')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Csomagok</button>
-                            <button onClick={() => scrollToSection('services')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Szolgáltatások</button>
-                            <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-gray-900 transition focus-ring">Kapcsolat</button>
-                        </div>
-
-                        <button className="md:hidden p-2 rounded-md focus-ring" onClick={() => setMobileMenuOpen(prev => !prev)} aria-label="Toggle menu">
-                            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-                        </button>
-                    </div>
-
-                    {mobileMenuOpen && (
-                        <div className="md:hidden pb-4">
-                            <button onClick={() => scrollToSection('about')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Rólunk</button>
-                            <button onClick={() => scrollToSection('products')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Csomagok</button>
-                            <button onClick={() => scrollToSection('services')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Szolgáltatások</button>
-                            <button onClick={() => scrollToSection('contact')} className="block w-full text-left py-2 text-gray-700 hover:text-gray-900 transition focus-ring">Kapcsolat</button>
-                        </div>
-                    )}
-                </div>
-            </nav>
-
-            {/* HERO */}
-            <section className="pt-24 pb-32 bg-gradient-to-br from-blue-50 to-gray-100">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center">
-                        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-                            Megfizethető Okos Otthon Megoldások
-                        </h1>
-                        <p className="text-xl sm:text-2xl text-gray-700 mb-4">
-                            A legköltséghatékonyabb okos automatizálás Szegeden
-                        </p>
-                        <p className="text-lg text-gray-600 mb-8 max-w-3xl mx-auto">
-                            Professzionális fűtés- és hűtésvezérlés, okosotthon-automatizálás és biztonsági rendszerek — Zigbee és vezetékes opciókkal.
-                        </p>
-                        <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                            <button
-                                onClick={() => scrollToSection('contact')}
-                                className="bg-blue-600 text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-blue-700 transition shadow-lg"
-                            >
-                                Kérjen Ingyenes Árajánlatot
-                            </button>
-                            <button
-                                onClick={() => scrollToSection('services')}
-                                className="bg-white text-blue-600 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-gray-50 transition shadow-lg border-2 border-blue-600"
-                            >
-                                Szolgáltatások Megtekintése
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* NEW: FULL PRIVACY / NO 3RD-PARTY SECTION directly under HERO */}
-            {showPrivacySection && (
-                <section id="privacy" className="py-8 bg-white">
-                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                        <div className="rounded-xl p-6 md:p-8 shadow-md"
-                             style={{ background: 'linear-gradient(90deg, rgba(248,113,113,0.02), rgba(59,130,246,0.02))' }}>
-                            <div className="flex flex-col md:flex-row md:items-start md:gap-6">
-
-                                <div className="flex-shrink-0 mb-4 md:mb-0">
-                                    <div className="w-14 h-14 rounded-full flex items-center justify-center"
-                                         style={{ background: '#3B82F6' }}>
-                                        <Shield style={{ color: 'white' }} className="h-7 w-7" />
-                                    </div>
+                        {/* BAL OLDAL: WEB MŰHELY */}
+                        <div
+                            onClick={() => !expanding && handleNavigation('websites')}
+                            className={`group relative flex flex-col items-center justify-center cursor-pointer transition-all duration-700 ease-in-out 
+                                ${expanding === 'websites' ? 'flex-[10] z-20' : expanding && expanding !== 'websites' ? 'flex-[0.001] opacity-0 pointer-events-none' : 'flex-1 hover:flex-[1.1]'} 
+                                bg-[#0a192f] overflow-hidden`}
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 via-transparent to-purple-500/10 opacity-50" />
+                            <div className={`z-10 text-center p-8 transition-all duration-500 ${expanding === 'websites' ? 'scale-150 opacity-0' : 'group-hover:scale-105'}`}>
+                                <div className="mb-8 inline-flex p-6 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 backdrop-blur-md shadow-[0_0_30px_-10px_rgba(16,185,129,0.3)] group-hover:scale-110 transition-transform">
+                                    <Globe size={40} />
                                 </div>
-
-                                <div className="flex-1">
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
-                                        Semmit sem küldünk harmadik félnek
-                                    </h3>
-                                    <p className="text-gray-700 mb-4">
-                                        Nálunk az adataid helyben maradnak...
-                                    </p>
-
-                                    <ul className="grid gap-3 md:grid-cols-3 text-gray-700">
-                                        <li>
-                                            <strong className="block text-gray-900">Helyi feldolgozás</strong>
-                                            Adatok helyben kerülnek feldolgozásra.
-                                        </li>
-                                        <li>
-                                            <strong className="block text-gray-900">Nincs 3rd-party tracking</strong>
-                                            Nem használunk külső analitikát.
-                                        </li>
-                                        <li>
-                                            <strong className="block text-gray-900">Opciók és átláthatóság</strong>
-                                            Külső szolgáltatás csak jóváhagyással.
-                                        </li>
-                                    </ul>
-                                </div>
-
-                                <div className="mt-4 md:mt-0 md:ml-6 flex-shrink-0">
-                                    <button
-                                        onClick={() => scrollToSection('contact')}
-                                        className="px-4 py-2 rounded-md bg-white border border-gray-200 text-gray-800 font-medium"
-                                    >
-                                        Több infó / Kapcsolat
-                                    </button>
-                                </div>
-
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            )}
-
-            {/* ABOUT */}
-            <section id="about" className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 section-heading">
-                            <span className="gradient-text">Rólunk</span>
-                        </h2>
-                        <div className="w-20 h-1 mx-auto" style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))' }} />
-                    </div>
-
-                    <div className="grid md:grid-cols-2 gap-12 items-center">
-                        <div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Családi Kiválóság</h3>
-                            <p className="text-gray-700 mb-4 leading-relaxed">Szegeden élő apa-fia csapat vagyunk, akik szenvedéllyel hozzák el az okosotthon-technológiát minden háztartásba és vállalkozásba.</p>
-                            <p className="text-gray-700 mb-4 leading-relaxed">Küldetésünk egyszerű: a legköltséghatékonyabb okosotthon- és biztonsági megoldásokat nyújtani kompromisszumok nélküli minőségben. Mind Zigbee-s (vezeték nélküli), mind vezetékes rendszereket telepítünk.</p>
-                            <p className="text-gray-700 leading-relaxed">Velünk személyre szabott szolgáltatást, helyi szakértelmet és azt a biztonságot kapja, amit egy megbízható családi vállalkozás biztosít.</p>
-                        </div>
-
-                        <div className="p-8 rounded-lg" style={{ background: 'linear-gradient(135deg, rgba(248,113,113,0.04), rgba(59,130,246,0.04))' }}>
-                            <h3 className="text-xl font-bold text-gray-900 mb-6">Miért Minket Válasszon?</h3>
-                            <ul className="space-y-4">
-                                {['Piacvezető árak', 'Helyi Szakértelem', 'Megbízható Technológia', 'Személyre Szabott Szolgáltatás'].map((title, i) => (
-                                    <li key={i} className="flex items-start">
-                                        <div className="rounded-full p-1 mr-3 mt-1" style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))' }}>
-                                            <svg className="w-4 h-4 text-white" fill="none" stroke="white" viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                        <div>
-                                            <span className="font-semibold text-gray-900">{title}</span>
-                                            <p className="text-gray-600">
-                                                {title === 'Piacvezető árak' && 'Verhetetlen árak, kompromisszum nélkül a minőségben'}
-                                                {title === 'Helyi Szakértelem' && 'Szegeden alapítva, büszkén szolgálva a régiót'}
-                                                {title === 'Megbízható Technológia' && 'Zigbee és vezetékes rendszerek a nagy megbízhatóságért'}
-                                                {title === 'Személyre Szabott Szolgáltatás' && 'Közvetlen kommunikáció a tulajdonosokkal'}
-                                            </p>
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            {/* PRODUCTS */}
-            <section id="products" className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-2 section-heading">
-                            <span className="gradient-text inline-block pb-1">Biztonsági Csomagok</span>
-                        </h2>
-                        <p className="text-gray-600 mt-4">Előre összeállított megoldások Zigbee és vezetékes technológiával</p>
-                    </div>
-
-                    <div className="overflow-x-auto -mx-4 px-4 md:px-0">
-                        <div className="flex gap-6 md:grid md:grid-cols-3 md:gap-8">
-                            {products.map(product => (
-                                <article
-                                    id={`product-${product.id}`}
-                                    key={product.id}
-                                    className="min-w-[280px] w-[320px] md:w-auto bg-white p-6 rounded-lg shadow hover:shadow-xl transition flex-shrink-0"
-                                >
-                                    <div className="h-44 w-full mb-4 overflow-hidden rounded-lg bg-gray-100 flex items-center justify-center">
-                                        <img
-                                            src={product.image || placeholder(product.title)}
-                                            alt={product.title}
-                                            className="object-contain w-full h-full p-2"
-                                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = placeholder(product.title); }}
-                                        />
-                                    </div>
-
-                                    <h3 className="text-xl font-semibold text-gray-900 mb-2">{product.title}</h3>
-                                    <p className="text-gray-600 mb-3">{product.description}</p>
-
-                                    <ul className="text-gray-700 mb-4 space-y-1">
-                                        {product.features.map((f, i) => (
-                                            <li key={i} className="flex items-start">
-                                                <svg className="w-4 h-4 mr-2 mt-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16" aria-hidden>
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                                </svg>
-                                                <span>{f}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-
-                                    <div className="flex items-center justify-between">
-                                        <div className="text-lg font-semibold text-gray-900">{product.priceRange}*</div>
-                                        <button
-                                            onClick={() => scrollToSection('contact')}
-                                            className="px-3 py-2 rounded-md text-sm focus-ring"
-                                            style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))', color: '#fff' }}
-                                        >
-                                            Árajánlat kérése
-                                        </button>
-                                    </div>
-                                </article>
-                            ))}
-                        </div>
-                    </div>
-
-                    {/* Note at the bottom */}
-                    <p className="text-sm text-gray-500 mt-4 text-center">Az árainkban a felszerelés nincs benne</p>
-                </div>
-            </section>
-
-            {/* SERVICES (left/right: solid blue; middle: gradient + ping) */}
-            <section id="services" className="py-20" style={{ background: 'linear-gradient(180deg, rgba(240,249,255,0.8), rgba(255,255,255,1))' }}>
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 section-heading">
-                            <span className="gradient-text">Szolgáltatásaink</span>
-                        </h2>
-                        <div className="w-20 h-1 mx-auto mb-4" style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))' }} />
-                        <p className="text-xl text-gray-600">Megfizethető okos megoldások minden otthonba és vállalkozásba</p>
-                    </div>
-
-                    <div className="grid md:grid-cols-3 gap-8">
-                        <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6" style={{ background: '#3B82F6' }}>
-                                <Thermometer style={{ color: 'white' }} className="h-8 w-8" />
-                            </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Fűtés- és Hűtésvezérlés</h3>
-                            <p className="text-gray-700 mb-4">Okos termosztátok és klímavezérlés — helyi vezérlés vagy távoli elérés.</p>
-                        </div>
-
-                        <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition flex flex-col items-center relative">
-                            <div className="relative w-16 h-16 mb-6">
-                                {/* solid pink background */}
-                                <div className="absolute inset-0 rounded-full" style={{ background: '#F87171' }} />
-                                <div className="absolute inset-0 rounded-full flex items-center justify-center">
-                                    <Zap style={{ color: 'white' }} className="h-8 w-8" />
-                                </div>
-                                {/* ping effect */}
-                                <div className="absolute inset-0 rounded-full pointer-events-none" aria-hidden>
-                                    <div className="ping-slow" style={{ width: '100%', height: '100%', borderRadius: '9999px' }} />
+                                <h2 className="text-4xl font-black text-white mb-3 tracking-tighter uppercase">OkosŐr</h2>
+                                <p className="text-xs text-emerald-400 font-bold uppercase tracking-[0.4em] mb-10">Web_Műhely</p>
+                                <div className="text-[10px] inline-flex items-center gap-2 text-emerald-500/60 group-hover:text-emerald-300 transition-colors tracking-[0.2em] font-mono">
+                                    DEPLOY_PROJECTS <Code2 size={14} />
                                 </div>
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Okosotthon Automatizálás</h3>
-                            <p className="text-gray-700 mb-4">Világítás, kapcsolók, szenzorok, automatizmusok — Zigbee és vezetékes integráció.</p>
                         </div>
 
-                        <div className="bg-white p-8 rounded-lg shadow-md hover:shadow-xl transition flex flex-col items-center">
-                            <div className="w-16 h-16 rounded-full flex items-center justify-center mb-6" style={{ background: '#3B82F6' }}>
-                                <Shield style={{ color: 'white' }} className="h-8 w-8" />
+                        {/* KÖZÉPSŐ OLDAL: SMARTHOME */}
+                        <div
+                            onClick={() => !expanding && handleNavigation('smarthome')}
+                            className={`group relative flex flex-col items-center justify-center cursor-pointer transition-all duration-700 ease-in-out 
+                                ${expanding === 'smarthome' ? 'flex-[10] z-20' : expanding && expanding !== 'smarthome' ? 'flex-[0.001] opacity-0 pointer-events-none' : 'flex-1 hover:flex-[1.1]'} 
+                                bg-white overflow-hidden border-x border-zinc-100`}
+                        >
+                            <div className="absolute inset-0 bg-blue-50/40 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className={`z-10 text-center p-8 transition-all duration-500 ${expanding === 'smarthome' ? 'scale-150 opacity-0' : 'group-hover:scale-105'}`}>
+                                <div className="mb-8 inline-flex p-6 rounded-[2rem] bg-blue-600 text-white shadow-2xl shadow-blue-200 group-hover:rotate-6 transition-transform">
+                                    <Home size={40} />
+                                </div>
+                                <h2 className="text-5xl font-black text-slate-900 mb-2 tracking-tight">OkosŐr</h2>
+                                <p className="text-lg text-blue-600 font-bold uppercase tracking-[0.2em] mb-8">Smarthome</p>
+                                <div className="inline-flex items-center gap-2 text-sm font-bold text-slate-400 group-hover:text-blue-600 transition-colors">
+                                    PRÉMIUM AUTOMATIZÁLÁS <ChevronRight size={16} />
+                                </div>
                             </div>
-                            <h3 className="text-2xl font-bold text-gray-900 mb-4">Biztonsági Rendszerek</h3>
-                            <p className="text-gray-700 mb-4">Kamerák, mozgásérzékelők, riasztók — vezetékes és Zigbee eszközök telepítése és konfigurálása.</p>
                         </div>
-                    </div>
 
-                    <div className="mt-12 p-8 rounded-lg text-center" style={{ background: 'linear-gradient(90deg, rgba(248,113,113,0.04), rgba(59,130,246,0.04))' }}>
-                        <h3 className="text-2xl font-bold mb-4">Lakossági és Üzleti Szolgáltatások</h3>
-                        <p className="text-lg mb-6 max-w-3xl mx-auto">Otthoni és vállalati telepítések, helyi konfiguráció, adatvédelmi fókusz — nincs „spy” a rendszereinkben.</p>
-                        <button onClick={() => scrollToSection('contact')} className="px-8 py-3 rounded-lg font-semibold focus-ring brand-pill" style={{ boxShadow: '0 8px 26px rgba(59,130,246,0.09)' }}>
-                            Vegye Fel Velünk a Kapcsolatot
-                        </button>
-                    </div>
-                </div>
-            </section>
-
-            {/* CONTACT */}
-            <section id="contact" className="py-20 bg-white">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="text-center mb-12">
-                        <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 mb-4 section-heading">
-                            <span className="gradient-text">Kapcsolat</span>
-                        </h2>
-                        <div className="w-20 h-1 mx-auto mb-4" style={{ background: 'linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end))' }} />
-                        <p className="text-gray-600">Kérjen személyre szabott árajánlatot vagy konzultációt</p>
-                    </div>
-
-                    <ContactForm />
-                </div>
-            </section>
-
-            {/* FOOTER (brand text readable on dark background) */}
-            <footer className="py-8 bg-gray-900 text-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4">
-                    <div className="flex items-center gap-3">
-                        <div style={{ background: 'var(--primary-bg)', padding: 6, borderRadius: 8 }}>
-                            <HouseLogo className="h-8 w-8" circleBg />
+                        {/* JOBB OLDAL: 3D MŰHELY */}
+                        <div
+                            onClick={() => !expanding && handleNavigation('3d')}
+                            className={`group relative flex flex-col items-center justify-center cursor-pointer transition-all duration-700 ease-in-out 
+                                ${expanding === '3d' ? 'flex-[10] z-20' : expanding && expanding !== '3d' ? 'flex-[0.001] opacity-0 pointer-events-none' : 'flex-1 hover:flex-[1.1]'} 
+                                bg-[#080808] overflow-hidden`}
+                        >
+                            <div className="absolute inset-0 opacity-20 bg-[linear-gradient(to_right,#333_1px,transparent_1px),linear-gradient(to_bottom,#333_1px,transparent_1px)] bg-[size:32px_32px]" />
+                            <div className={`z-10 text-center p-8 transition-all duration-500 ${expanding === '3d' ? 'scale-150 opacity-0' : 'group-hover:scale-105'}`}>
+                                <div className="mb-8 inline-flex p-6 rounded-none bg-zinc-900 text-orange-600 border border-zinc-700 shadow-2xl group-hover:-rotate-6 transition-transform">
+                                    <Printer3D size={40} />
+                                </div>
+                                <h2 className="text-4xl font-black text-white mb-3 tracking-tighter uppercase">OkosŐr</h2>
+                                <p className="text-sm text-orange-600 font-bold uppercase tracking-[0.4em] mb-10">3D_Műhely</p>
+                                <div className="text-[10px] inline-flex items-center gap-2 text-zinc-500 group-hover:text-orange-500 transition-colors tracking-widest">
+                                    [ ADDITÍV_GYÁRTÁS ] <ChevronRight size={14} />
+                                </div>
+                            </div>
                         </div>
-                        <div>
-                            <div className="text-white font-bold text-lg">OkosŐr Szeged</div>
-                            <div className="text-gray-400 text-sm">&copy; {new Date().getFullYear()} Minden jog fenntartva (Vastag Péter E.V.).</div>
-                        </div>
-                    </div>
+                    </motion.div>
+                )}
 
-                    <div className="flex items-center gap-4">
-                        <a className="text-gray-300 hover:text-white" href="tel:+36204545501"><Phone className="h-5 w-5 inline-block" /> <span className="ml-2">+36 20 454 5501</span></a>
-                        <a className="text-gray-300 hover:text-white" href="mailto:info@okosor.hu"><Mail className="h-5 w-5 inline-block" /> <span className="ml-2">info@okosor.hu</span></a>
-                        <div className="text-gray-400 text-sm">Szeged, Hungary</div>
-                    </div>
-                </div>
-            </footer>
-        </div>
+                {/* Content Views */}
+                {view === 'smarthome' && (
+                    <motion.div key="smarthome-page" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                        <SmarthomeContent onBack={() => setView('portal')} />
+                    </motion.div>
+                )}
+
+                {view === '3d' && (
+                    <motion.div key="3d-page" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                        <ThreeDHomeContent onBack={() => setView('portal')} />
+                    </motion.div>
+                )}
+
+                {view === 'websites' && (
+                    <motion.div key="websites-page" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                        <WebsiteContent onBack={() => setView('portal')} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </main>
     );
 }

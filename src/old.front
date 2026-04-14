@@ -1,0 +1,231 @@
+import React, { useState } from 'react';
+import {
+    Thermometer,
+    Shield,
+    Zap,
+    Menu,
+    X,
+    Phone,
+    Mail,
+    ArrowRight,
+    ArrowLeft,
+    Lock,
+    Server,
+    Cpu
+} from 'lucide-react';
+import ContactForm from './components/ContactForm';
+
+// Tiszta, újrahasználható Logo komponens
+const SmartLogo = ({ className = "h-8 w-8" }) => (
+    <div className={`relative flex items-center justify-center ${className}`}>
+        <div className="absolute inset-0 bg-blue-600/10 rounded-lg rotate-3" />
+        <div className="relative bg-white border-2 border-blue-600 p-1 rounded-lg">
+            <Shield className="text-blue-600" size={18} />
+        </div>
+    </div>
+);
+
+export default function SmarthomeHome({ onBack }: { onBack?: () => void }): JSX.Element {
+    const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+    const products = [
+        {
+            id: 'basic',
+            title: 'CORE_PROTECT',
+            subtitle: 'Alap Biztonság',
+            price: '350 000 Ft',
+            features: ['Smart Server v1', 'Zigbee Hub', '3x Mozgásérzékelő', '3x Nyitásérzékelő'],
+            icon: <Lock size={24} />
+        },
+        {
+            id: 'medium',
+            title: 'FAMILY_SHIELD',
+            subtitle: 'Családi Biztonság',
+            price: '550 000 Ft',
+            features: ['Smart Server v1', '12x Választható szenzor', '2x IP Kamera', 'Távoli elérés'],
+            highlight: true,
+            icon: <Shield size={24} />
+        },
+        {
+            id: 'strong',
+            title: 'ENTERPRISE',
+            subtitle: 'Teljes Védelem',
+            price: 'EGYEDI ÁR',
+            features: ['Vezetékes + Vezeték nélküli', 'Korlátlan szenzor', 'Haladó riasztási logika', 'Sziréna hálózat'],
+            icon: <Server size={24} />
+        }
+    ];
+
+    const scrollTo = (id: string) => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+        setMobileMenuOpen(false);
+    };
+
+    return (
+        <div className="min-h-screen bg-[#fafafa] text-zinc-900 font-sans">
+            {/* NAV - CLEANER & TECHIER */}
+            <nav className="fixed w-full z-50 bg-white/80 backdrop-blur-xl border-b border-zinc-200">
+                <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        {onBack && (
+                            <button onClick={onBack} className="text-zinc-400 hover:text-blue-600 transition-colors">
+                                <ArrowLeft size={20} />
+                            </button>
+                        )}
+                        <div className="flex items-center gap-3">
+                            <SmartLogo />
+                            <span className="font-tech text-sm font-bold tracking-tighter">OKOSŐR // SZEGED</span>
+                        </div>
+                    </div>
+
+                    <div className="hidden md:flex items-center gap-8 font-tech text-[10px] font-bold text-zinc-500">
+                        {['about', 'products', 'services'].map((item) => (
+                            <button key={item} onClick={() => scrollTo(item)} className="hover:text-blue-600 transition-colors">
+                                {item.toUpperCase()}
+                            </button>
+                        ))}
+                        <button
+                            onClick={() => scrollTo('contact')}
+                            className="bg-zinc-900 text-white px-4 py-2 rounded-none hover:bg-blue-600 transition-all"
+                        >
+                            [ KAPCSOLAT ]
+                        </button>
+                    </div>
+
+                    <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
+                        {mobileMenuOpen ? <X /> : <Menu />}
+                    </button>
+                </div>
+            </nav>
+
+            {/* HERO - MINIMALIST & BOLD */}
+            <section className="relative pt-40 pb-32 px-6 overflow-hidden bg-white border-b border-zinc-100">
+                <div className="absolute inset-0 bg-[radial-gradient(#e5e7eb_1px,transparent_1px)] [background-size:32px_32px] opacity-40" />
+                <div className="max-w-7xl mx-auto relative">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 border border-blue-100 text-blue-600 rounded-none mb-8 font-tech text-[10px]">
+                        <Cpu size={14} /> LOCAL_STORAGE_ONLY // NO_CLOUD_TRACKING
+                    </div>
+
+                    <h1 className="font-tech text-4xl md:text-7xl font-black leading-[0.9] mb-8 tracking-tighter">
+                        AZ ADATAID <br />
+                        <span className="text-blue-600 italic">OTTHON MARADNAK.</span>
+                    </h1>
+
+                    <p className="text-zinc-500 max-w-xl text-lg mb-10 font-medium">
+                        Professzionális fűtésvezérlés és biztonsági automatika Szegeden.
+                        Nincs harmadik fél, nincs előfizetés, csak tiszta technológia.
+                    </p>
+
+                    <div className="flex flex-wrap gap-4">
+                        <button onClick={() => scrollTo('contact')} className="bg-blue-600 text-white px-8 py-4 font-tech text-xs font-bold hover:bg-zinc-900 transition-all">
+                            Díjmentes Felmérés
+                        </button>
+                        <button onClick={() => scrollTo('products')} className="bg-white border border-zinc-200 text-zinc-900 px-8 py-4 font-tech text-xs font-bold hover:bg-zinc-50 transition-all">
+                            Csomagok Megtekintése
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            {/* PRIVACY BANNER - BRUTALIST */}
+            <section className="bg-blue-600 py-4 overflow-hidden border-y border-blue-700">
+                <div className="flex gap-12 animate-infinite-scroll whitespace-nowrap font-tech text-[10px] text-white font-bold tracking-widest uppercase">
+                    {[...Array(10)].map((_, i) => (
+                        <span key={i} className="flex items-center gap-4">
+                            <Shield size={12} /> Nincs külső analitika • Helyi adatfeldolgozás • Biztonság
+                        </span>
+                    ))}
+                </div>
+            </section>
+
+            {/* PRODUCTS - TECH GRID */}
+            <section id="products" className="py-32 px-6 max-w-7xl mx-auto">
+                <div className="flex flex-col md:flex-row justify-between items-end mb-20 gap-6">
+                    <div>
+                        <h2 className="font-tech text-3xl font-black mb-4 tracking-tighter uppercase">Rendszer Csomagok</h2>
+                        <p className="text-zinc-500 uppercase text-xs font-bold tracking-widest">Optimalizált hardver összeállítások</p>
+                    </div>
+                    <div className="h-[2px] w-24 bg-blue-600" />
+                </div>
+
+                <div className="grid md:grid-cols-3 gap-8">
+                    {products.map((p) => (
+                        <div key={p.id} className={`group p-8 border ${p.highlight ? 'border-blue-600 bg-blue-50/30' : 'border-zinc-200 bg-white'} transition-all hover:border-blue-600`}>
+                            <div className={`w-12 h-12 flex items-center justify-center mb-8 ${p.highlight ? 'bg-blue-600 text-white' : 'bg-zinc-100 text-zinc-900'}`}>
+                                {p.icon}
+                            </div>
+                            <h3 className="font-tech text-lg font-bold mb-1 tracking-tighter">{p.title}</h3>
+                            <p className="text-[10px] font-bold text-blue-600 mb-6 uppercase tracking-widest">{p.subtitle}</p>
+
+                            <ul className="space-y-3 mb-12">
+                                {p.features.map((f, i) => (
+                                    <li key={i} className="flex items-center gap-3 text-sm text-zinc-600 font-medium">
+                                        <div className="w-1.5 h-1.5 bg-blue-600 rounded-none" /> {f}
+                                    </li>
+                                ))}
+                            </ul>
+
+                            <div className="pt-6 border-t border-zinc-100 flex items-center justify-between">
+                                <span className="font-tech text-sm font-black">{p.price}</span>
+                                <ArrowRight size={18} className="text-zinc-300 group-hover:text-blue-600 group-hover:translate-x-2 transition-all" />
+                            </div>
+                        </div>
+                    ))}
+                </div>
+                <p className="mt-8 text-[10px] font-tech text-zinc-400 text-center tracking-widest">A feltüntetett árak a telepítési költséget nem tartalmazzák.</p>
+            </section>
+
+            {/* SERVICES - CLEAN CARDS */}
+            <section id="services" className="py-32 bg-zinc-900 text-white px-6">
+                <div className="max-w-7xl mx-auto grid md:grid-cols-3 gap-1">
+                    {[
+                        { title: "KLÍMA_CONTROL", desc: "Okos termosztátok és klímavezérlés helyi vagy távoli eléréssel.", icon: <Thermometer /> },
+                        { title: "CORE_LOGIC", desc: "Világítás, kapcsolók és komplex automatizmusok Zigbee alapon.", icon: <Zap /> },
+                        { title: "SEC_OPS", desc: "Kamerák, mozgásérzékelők és riasztók szünetmentes hálózata.", icon: <Shield /> }
+                    ].map((s, i) => (
+                        <div key={i} className="p-12 border border-zinc-800 hover:bg-zinc-800 transition-colors group">
+                            <div className="mb-8 text-blue-500 group-hover:scale-110 transition-transform">{s.icon}</div>
+                            <h3 className="font-tech text-sm font-black mb-4 tracking-widest">{s.title}</h3>
+                            <p className="text-zinc-500 text-sm leading-relaxed uppercase">{s.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* CONTACT - MINIMALIST FORM */}
+            <section id="contact" className="py-32 px-6">
+                <div className="max-w-3xl mx-auto">
+                    <div className="text-center mb-16">
+                        <h2 className="font-tech text-3xl font-black mb-4 tracking-tighter">AJÁNLATKÉRÉS</h2>
+                        <p className="text-zinc-500 font-tech text-[10px] tracking-widest">Mérnöki felmérés // Ingyenes árajánlat</p>
+                    </div>
+                    <div className="bg-white border border-zinc-200 p-2">
+                        <ContactForm />
+                    </div>
+                </div>
+            </section>
+
+            {/* FOOTER */}
+            <footer className="py-12 border-t border-zinc-200 bg-white px-6">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-8">
+                    <div className="flex items-center gap-4">
+                        <SmartLogo className="h-10 w-10" />
+                        <div>
+                            <span className="font-tech text-xs font-black block tracking-widest">OKOSŐR SZEGED</span>
+                            <span className="text-[10px] text-zinc-400">© 2026 // VASTAG PÉTER E.V.</span>
+                        </div>
+                    </div>
+
+                    <div className="flex gap-10 font-tech text-[9px] text-zinc-500 font-bold uppercase tracking-widest">
+                        <a href="tel:+36204545501" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                            <Phone size={12} /> +36 20 454 5501
+                        </a>
+                        <a href="mailto:info@okosor.hu" className="hover:text-blue-600 transition-colors flex items-center gap-2">
+                            <Mail size={12} /> info@okosor.hu
+                        </a>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    );
+}

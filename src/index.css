@@ -1,3 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Syncopate:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Michroma&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+    :root {
+        --primary-grad-start: #ea580c; /* orange-600 */
+        --primary-grad-end: #fb923c;   /* orange-400 */
+    }
+
+    body {
+        @apply bg-[#050505] text-zinc-200 antialiased;
+    }
+}
+
+@layer components {
+    /* A kért széles, tech-stílusú betűtípus (Michroma) */
+    .font-tech {
+        font-family: 'Michroma', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+    }
+
+    /* Extrán széles, építészeti betűtípus a főcímekhez (Syncopate) */
+    .font-wide {
+        font-family: 'Syncopate', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.3em;
+    }
+
+    .gradient-text {
+        background: linear-gradient(90deg, var(--primary-grad-start), var(--primary-grad-end));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        color: transparent;
+
+        display: inline-block;
+
+        /* FIX FOR g / y / p DESCENDERS */
+        line-height: 1.45;
+        padding-bottom: 0.08em;
+    }
+
+    /* Brutalista gomb stílus */
+    .btn-tech {
+        @apply border border-zinc-800 bg-black px-6 py-3 font-tech text-[10px]
+        transition-all hover:bg-white hover:text-black hover:border-white active:scale-95;
+    }
+
+    /* Rácshálós háttér minta */
+    .bg-grid {
+        background-image:
+                linear-gradient(to right, #121212 1px, transparent 1px),
+                linear-gradient(to bottom, #121212 1px, transparent 1px);
+        background-size: 40px 40px;
+    }
+    .font-tech {
+        font-family: 'Michroma', sans-serif;
+        text-transform: uppercase;
+        letter-spacing: 0.1em;
+    }
+}
